@@ -12,7 +12,7 @@ import sys
 from setuptools import setup
 
 
-SCHEDULE_VERSION = '0.1.3'
+SCHEDULE_VERSION = '0.1.4'
 SCHEDULE_DOWNLOAD_URL = (
     'https://github.com/quocble/jupyter-cron/tarball/' + SCHEDULE_VERSION
 )

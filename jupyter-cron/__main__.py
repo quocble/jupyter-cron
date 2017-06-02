@@ -9,6 +9,7 @@ import argparse
 import inspect
 from types import FunctionType
 import logging
+import datetime
 
 logger = logging.getLogger('jupyter-cron')
 ch = logging.StreamHandler()
@@ -23,6 +24,7 @@ parser = argparse.ArgumentParser(description="Scans for file to run on a schedul
 parser.add_argument("glob", type=str, help="specify glob to search eg. test/**/*.ipynb")
 parser.add_argument("-d", "--daemonize", help="daemonize the process", action="store_true")
 parser.add_argument("-l", "--log", type=str, help="specify log file")
+parser.add_argument("-r", "--refresh", type=int, help="refresh file time (default 5)")
 
 args = parser.parse_args()
 
@@ -44,11 +46,16 @@ def job(filename):
     path = pathlib.Path(filename)
 
     if path.is_file():
+        dt_started = datetime.datetime.utcnow()
         logger.info ("Running file " + filename + " with ext " + path.suffix)
         if path.suffix == '.ipynb':
             os.system("jupyter nbconvert --ExecutePreprocessor.timeout=300 --execute \"" + filename + "\"")
         if path.suffix == '.py':
             os.system("python \"" + filename + "\" > \"" + filename + ".output.txt\"")
+
+        dt_ended = datetime.datetime.utcnow()
+        seconds = (dt_ended - dt_started).total_seconds()
+        logger.info ("Job took " + str(seconds) + " seconds")
     else:
         logger.warn("File does not exist " + filename)
         return schedule.CancelJob
@@ -89,6 +96,7 @@ def build_schedule():
             if x in every_X:
                 every = schedule.every()
                 getattr(every, x).at(time_str).do(job, filename).tag(tagHash)
+                logger.info("inserted new job " + filename)
             else:
                 logger.warn(match.group(2) + " is not valid")
 
@@ -96,8 +104,8 @@ def build_schedule():
     for j in schedule.jobs:
         logger.info (j)
 
-
-schedule.every(5).minutes.do(build_schedule)
+refresh = args.refresh and args.refresh or 5
+schedule.every(refresh).minutes.do(build_schedule)
 build_schedule()
 
 def run_loop():
