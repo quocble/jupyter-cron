@@ -50,3 +50,4 @@ Quoc Le - `@realQuoc <https://twitter.com/realQuoc>`_ - quocble@gmail.com
 Distributed under the MIT license. See ``LICENSE.txt`` for more information.
 
 https://github.com/quocble/jupyter-cron
+http://rst.ninjs.org/
