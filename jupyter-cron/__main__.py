@@ -82,8 +82,9 @@ def run_loop():
         schedule.run_pending()
         time.sleep(1)
 
-if args.daemonize:
-    with daemon.DaemonContext():
+if __name__ == "__main__":
+    if args.daemonize:
+        with daemon.DaemonContext():
+            run_loop()
+    else:
         run_loop()
-else:
-    run_loop()
