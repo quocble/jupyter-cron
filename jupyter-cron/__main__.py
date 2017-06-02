@@ -36,7 +36,7 @@ every_X = ['day', 'monday', 'tuesday', 'wednesday','thursday', 'friday','saturda
 
 if args.log:
     fh = logging.FileHandler(args.log)
-    fh.setLevel(logging.DEBUG)
+    fh.setLevel(logging.INFO)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     logger.info("set log file to " +  args.log)
@@ -57,7 +57,7 @@ def job(filename):
         seconds = (dt_ended - dt_started).total_seconds()
         logger.info ("Job took " + str(seconds) + " seconds")
     else:
-        logger.warn("File does not exist " + filename)
+        logger.warn("File does not exist " + filename + ", remove job")
         return schedule.CancelJob
 
 
@@ -66,7 +66,7 @@ def build_schedule():
         #print (filename)
         match = patternEveryN.match(filename)
         if match == None:
-            logger.info ("format does not match " + filename)
+            # logger.info ("format does not match " + filename)
             continue
 
         timeMatch = patternTime.match(match.group(3))
@@ -76,7 +76,7 @@ def build_schedule():
 
         #print (match.group(1,2,3))
         t = None
-        logger.info (filename + " matches for schedule")
+        logger.debug (filename + " matches for schedule")
 
         if timeMatch.group(2) == None:
             t = time.strptime(match.group(3).upper(), "%I%p")
@@ -100,15 +100,18 @@ def build_schedule():
             else:
                 logger.warn(match.group(2) + " is not valid")
 
+def setup_schedule():
+    refresh = args.refresh and args.refresh or 5
+    schedule.every(refresh).minutes.do(build_schedule)
+    build_schedule()
+
     logger.info ("current schedule")
     for j in schedule.jobs:
         logger.info (j)
 
-refresh = args.refresh and args.refresh or 5
-schedule.every(refresh).minutes.do(build_schedule)
-build_schedule()
-
 def run_loop():
+    setup_schedule()
+
     while True:
         schedule.run_pending()
         time.sleep(1)
