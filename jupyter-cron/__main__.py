@@ -82,7 +82,7 @@ def build_schedule():
             t = time.strptime(match.group(3).upper(), "%I%p")
         else:
             t = time.strptime(match.group(3).upper(), "%I.%M%p")
-        time_str = str(t.tm_hour) + ":" + str(t.tm_min)
+        time_str = f'{t.tm_hour:02d}:{t.tm_min:02d}'
 
         tagHash = match.group(1) + match.group(2) + match.group(3)
         path = pathlib.Path(filename)
